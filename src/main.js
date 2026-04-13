@@ -1,23 +1,27 @@
-const { PrismaClient } = require('../generated/prisma');
+const { PrismaClient } = require('@prisma/client');
 const { joinGame } = require('./game.service');
 
 const prisma = new PrismaClient();
 
 async function main() {
-  // 1. התחבר למסד הנתונים
   await prisma.$connect();
   console.log('התחברנו למסד הנתונים');
 
-  // 2. צור משתמש
+  // מחיקת נתונים ישנים
+  await prisma.gameParticipant.deleteMany();
+  await prisma.game.deleteMany();
+  await prisma.user.deleteMany();
+
+  // צור משתמש
   const user = await prisma.user.create({
     data: {
-      name: 'סארי',
+      name: 'sari',
       email: 'sari@example.com'
     }
   });
   console.log('נוצר משתמש:', user.name);
 
-  // 3. צור משחק בסטטוס WAITING
+  // צור משחק
   const game = await prisma.game.create({
     data: {
       name: 'משחק ראשון',
@@ -26,7 +30,7 @@ async function main() {
   });
   console.log('נוצר משחק:', game.name);
 
-  // 4. קרא לפונקציה joinGame
+  // הצטרף למשחק
   try {
     await joinGame(user.id, game.id);
     console.log('Success: User joined game');
